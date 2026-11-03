@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HWH Слить золото (Дар стихий / Аврора)
 // @namespace    HWHSlitZoloto
-// @version      0.9
+// @version      0.10
 // @description  Добавляет в меню "Действия" HeroWarsHelper кнопки "Слить золото" (Дар стихий Авроры пакетами, N циклов, в конце дар остаётся на 30 уровне) и "Невидимый магазин". Добавлена кнопка "Закрыть" в окно результатов.
 // @match        https://www.hero-wars.com/*
 // @match        https://www.hero-wars.cn/*
@@ -45,8 +45,6 @@ function retryHwhRuntimeInitialization({
     retry,
     readyWhen,
     logPrefix = "[HWH SlitZoloto]",
-    scriptName = "HWH Слить золото",
-    showInstallNotice = true,
 } = {}) {
     const initAttempt = Number(attempt) || 0;
     if (isHwhRuntimeReady(requiredKeys, readyWhen)) {
@@ -56,10 +54,7 @@ function retryHwhRuntimeInitialization({
         globalThis.setTimeout(() => retry(initAttempt + 1), delayMs);
         return false;
     }
-    console.log(`%c${logPrefix} Объект расширения не найден`, "color: red");
-    if (showInstallNotice) {
-        alert(`${scriptName}: Не найден HeroWarsHelper. Убедитесь, что он установлен и загружен.`);
-    }
+    console.log(`%c${logPrefix} Объект расширения не найден. Скрипт завершён.`, "color: red");
     return false;
 }
 
@@ -314,7 +309,6 @@ function showFinish(cycles, doneCycles, stopped, error, finalLevel) {
     children.push(el('div', 'hwsz-text', lines.join('\n')));
     
     const row = el('div', 'hwsz-btns');
-    // 🔥 ДОБАВЛЕНА КНОПКА "ЗАКРЫТЬ"
     row.append(
         button('Закрыть', 'red', closeModal),
         button('Перезагрузить', 'blue', () => location.reload()), 
@@ -369,7 +363,6 @@ function showShopFinish(count, done, stopped, error) {
     children.push(el('div', 'hwsz-text', lines.join('\n')));
     
     const row = el('div', 'hwsz-btns');
-    // 🔥 ДОБАВЛЕНА КНОПКА "ЗАКРЫТЬ"
     row.append(
         button('Закрыть', 'red', closeModal),
         button('Перезагрузить', 'blue', () => location.reload()), 
@@ -427,8 +420,6 @@ function tryRegister(attempt) {
             return !!(window.HWHData && window.HWHData.actionsPopupButtons && typeof window.Caller !== 'undefined');
         },
         logPrefix: "[HWH SlitZoloto]",
-        scriptName: "HWH Слить золото",
-        showInstallNotice: true,
     });
     if (ready) {
         registerButton();
