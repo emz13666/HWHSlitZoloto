@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HWH Слить золото (Дар стихий / Аврора)
 // @namespace    HWHSlitZoloto
-// @version      0.8
+// @version      0.9
 // @description  Добавляет в меню "Действия" HeroWarsHelper кнопки "Слить золото" (Дар стихий Авроры пакетами, N циклов, в конце дар остаётся на 30 уровне) и "Невидимый магазин". Добавлена кнопка "Закрыть" в окно результатов.
 // @match        https://www.hero-wars.com/*
 // @match        https://www.hero-wars.cn/*
@@ -99,15 +99,15 @@ function addStyles() {
 .hwsz-overlay{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.6);
 display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif}
 .hwsz-box{background:#2b2318;border:2px solid #8a6d3b;border-radius:8px;color:#f3e3bd;
-padding:18px 22px;min-width:300px;max-width:90vw;box-shadow:0 0 20px #000}
+padding:18px 22px;min-width:320px;max-width:95vw;box-shadow:0 0 20px #000}
 .hwsz-title{font-size:18px;font-weight:bold;margin-bottom:12px;text-align:center}
 .hwsz-text{font-size:14px;margin:8px 0;text-align:center;line-height:1.4;white-space:pre-line}
 .hwsz-input{width:100%;box-sizing:border-box;font-size:18px;text-align:center;padding:6px;
 border:1px solid #8a6d3b;border-radius:4px;background:#1a140d;color:#fff}
 .hwsz-gold{font-size:14px;margin-top:10px;text-align:center;color:#ffd24d}
-.hwsz-btns{display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap: wrap;}
-.hwsz-btn{flex:1;padding:8px 14px;font-size:15px;font-weight:bold;border-radius:4px;
-border:1px solid #000;cursor:pointer;color:#fff; min-width: 100px;}
+.hwsz-btns{display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap: wrap;}
+.hwsz-btn{flex:1 1 auto;padding:6px 10px;font-size:13px;font-weight:bold;border-radius:4px;
+border:1px solid #000;cursor:pointer;color:#fff; min-width: 80px; white-space: nowrap;}
 .hwsz-btn.green{background:#3d8f2f}.hwsz-btn.red{background:#a8322b}
 .hwsz-btn.blue{background:#2f6fa8}
 .hwsz-btn:hover{filter:brightness(1.15)}
