@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         HWH Слить золото (Дар стихий / Аврора)
 // @namespace    HWHSlitZoloto
-// @version      0.7
-// @description  Добавляет в меню "Действия" HeroWarsHelper кнопки "Слить золото" (Дар стихий Авроры пакетами, N циклов, в конце дар остаётся на 30 уровне) и "Невидимый магазин"
+// @version      0.8
+// @description  Добавляет в меню "Действия" HeroWarsHelper кнопки "Слить золото" (Дар стихий Авроры пакетами, N циклов, в конце дар остаётся на 30 уровне) и "Невидимый магазин". Добавлена кнопка "Закрыть" в окно результатов.
 // @match        https://www.hero-wars.com/*
 // @match        https://www.hero-wars.cn/*
 // @match        https://apps-1701433570146040.apps.fbsbx.com/*
@@ -105,9 +105,9 @@ padding:18px 22px;min-width:300px;max-width:90vw;box-shadow:0 0 20px #000}
 .hwsz-input{width:100%;box-sizing:border-box;font-size:18px;text-align:center;padding:6px;
 border:1px solid #8a6d3b;border-radius:4px;background:#1a140d;color:#fff}
 .hwsz-gold{font-size:14px;margin-top:10px;text-align:center;color:#ffd24d}
-.hwsz-btns{display:flex;gap:10px;margin-top:16px;justify-content:center}
+.hwsz-btns{display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap: wrap;}
 .hwsz-btn{flex:1;padding:8px 14px;font-size:15px;font-weight:bold;border-radius:4px;
-border:1px solid #000;cursor:pointer;color:#fff}
+border:1px solid #000;cursor:pointer;color:#fff; min-width: 100px;}
 .hwsz-btn.green{background:#3d8f2f}.hwsz-btn.red{background:#a8322b}
 .hwsz-btn.blue{background:#2f6fa8}
 .hwsz-btn:hover{filter:brightness(1.15)}
@@ -251,12 +251,7 @@ async function startRun(cycles) {
         heroId = aurora.id;
         level = aurora.titanGiftLevel || 0;
 
-        // ============================================================
-        // 🔥 ОСНОВНОЙ ЦИКЛ: сначала сброс (если дар > 0), потом пакет
-        // После последней итерации дар остаётся на 30 уровне
-        // ============================================================
         for (let c = 1; c <= cycles && !state.stop; c++) {
-            // Сначала сброс дара
             if (level > 0) {
                 info.textContent = `Цикл ${c} / ${cycles}\nСброс дара (ур. ${level})...`;
                 try {
@@ -270,7 +265,6 @@ async function startRun(cycles) {
                 await sleep(PAUSE_MS);
             }
 
-            //Потом пакет из 30 повышений (0 → 30)
             info.textContent = `Цикл ${c} / ${cycles}\nПакет из ${MAX_LEVEL} повышений 0 → ${MAX_LEVEL}...`;
             barInner.style.width = `${((c - 1) / cycles) * 100}%`;
 
@@ -282,7 +276,6 @@ async function startRun(cycles) {
             } catch (e) {
                 console.warn('[HWH SlitZoloto] Цикл прерван:', e.message);
                 error = `Цикл ${c} прерван: ${e.message || e}`;
-                // Пытаемся сбросить то, что успело подняться
                 if (heroId && level > 0) {
                     try { await Caller.send({ name: 'heroTitanGiftDrop', args: { heroId } }); } catch (e2) {}
                 }
@@ -293,8 +286,6 @@ async function startRun(cycles) {
             barInner.style.width = `${(c / cycles) * 100}%`;
             await sleep(PAUSE_MS);
         }
-
-        // После цикла level = MAX_LEVEL (дар на 30 уровне) — это и есть финальное состояние
     } catch (e) {
         console.error('[HWH SlitZoloto]', e);
         error = e && e.message ? e.message : String(e);
@@ -309,7 +300,7 @@ async function startRun(cycles) {
 }
 
 /* ================================================================ */
-/* Экран 3: итог                                                    */
+/* Экран 3: итог (Слить золото)                                     */
 /* ================================================================ */
 function showFinish(cycles, doneCycles, stopped, error, finalLevel) {
     const lines = [
@@ -321,8 +312,14 @@ function showFinish(cycles, doneCycles, stopped, error, finalLevel) {
     const children = [el('div', 'hwsz-title', error ? 'Ошибка' : stopped ? 'Остановлено' : 'Готово')];
     if (error) children.push(el('div', 'hwsz-text hwsz-err', error));
     children.push(el('div', 'hwsz-text', lines.join('\n')));
+    
     const row = el('div', 'hwsz-btns');
-    row.append(button('Перезагрузить', 'blue', () => location.reload()), button('Слить еще', 'green', () => showInput(cycles)));
+    // 🔥 ДОБАВЛЕНА КНОПКА "ЗАКРЫТЬ"
+    row.append(
+        button('Закрыть', 'red', closeModal),
+        button('Перезагрузить', 'blue', () => location.reload()), 
+        button('Слить еще', 'green', () => showInput(cycles))
+    );
     children.push(row);
     render(...children);
 }
@@ -360,14 +357,24 @@ async function startShop(count) {
     }
     showShopFinish(count, done, state.stop, error);
 }
+
+/* ================================================================ */
+/* Экран 3: итог (Невидимый магазин)                                */
+/* ================================================================ */
 function showShopFinish(count, done, stopped, error) {
     const lines = [`Выполнено покупок: ${done} из ${count}`, `Потрачено золота: ${fmt(done * SHOP_PRICE)}`];
     if (stopped) lines.unshift('Остановлено пользователем.');
     const children = [el('div', 'hwsz-title', error ? 'Ошибка' : stopped ? 'Остановлено' : 'Готово')];
     if (error) children.push(el('div', 'hwsz-text hwsz-err', error));
     children.push(el('div', 'hwsz-text', lines.join('\n')));
+    
     const row = el('div', 'hwsz-btns');
-    row.append(button('Перезагрузить', 'blue', () => location.reload()), button('Купить еще', 'green', () => showShopInput(count)));
+    // 🔥 ДОБАВЛЕНА КНОПКА "ЗАКРЫТЬ"
+    row.append(
+        button('Закрыть', 'red', closeModal),
+        button('Перезагрузить', 'blue', () => location.reload()), 
+        button('Купить еще', 'green', () => showShopInput(count))
+    );
     children.push(row);
     render(...children);
 }
